@@ -31,50 +31,6 @@ public sealed class Agent(PlugInToken token, IModel model, IHarness harness, str
     /// </summary>
     public IModel Model { get; } = model;
 
-    // TODO : Deserialize the Definitions.json
-    private static Dictionary<string, IModel> PrivateModelMakers { get; } = new(StringComparer.OrdinalIgnoreCase) {
-        { "default", DeepSeekModel.Default() },
-
-        { "claude-fable-5-1", ClaudeModel.Default("claude-fable-5-1") },
-        { "claude-fable-5", ClaudeModel.Default("claude-fable-5") },
-        { "claude-mythos-5-1", ClaudeModel.Default("claude-mythos-5-1") },
-        { "claude-mythos-5", ClaudeModel.Default("claude-mythos-5") },
-        { "claude-opus-5", ClaudeModel.Default("claude-opus-5") },
-        { "claude-opus-4-8", ClaudeModel.Default("claude-opus-4-8") },
-        { "claude-opus-4-7", ClaudeModel.Default("claude-opus-4-7") },
-        { "claude-opus-4-6", ClaudeModel.Default("claude-opus-4-6") },
-        { "claude-opus-4-5", ClaudeModel.Default("claude-opus-4-5") },
-        { "claude-opus-4-1", ClaudeModel.Default("claude-opus-4-1") },
-        { "claude-opus-4", ClaudeModel.Default("claude-opus-4") },
-        { "claude-sonnet-5", ClaudeModel.Default("claude-sonnet-5") },
-        { "claude-sonnet-4-6", ClaudeModel.Default("claude-sonnet-4-6") },
-        { "claude-sonnet-4-5", ClaudeModel.Default("claude-sonnet-4-5") },
-        { "claude-sonnet-4", ClaudeModel.Default("claude-sonnet-4") },
-        { "claude-haiku-4-5", ClaudeModel.Default("claude-haiku-4-5") },
-
-        { "gpt-6-astra", ChatGptModel.Default("gpt-6-astra") },
-        { "gpt-5.6-sol", ChatGptModel.Default("gpt-5.6-sol") },
-        { "gpt-5.6-terra", ChatGptModel.Default("gpt-5.6-terra") },
-        { "gpt-5.6-luna", ChatGptModel.Default("gpt-5.6-luna") },
-        { "gpt-5.5", ChatGptModel.Default("gpt-5.5") },
-
-        { "gemini-2.5-pro", GeminiModel.Default("gemini-2.5-pro", "Google") },
-        { "gemini-2.5-flash", GeminiModel.Default("gemini-2.5-flash", "Google") },
-        { "gemini-2.5-flash-lite", GeminiModel.Default("gemini-2.5-flash-lite", "Google") },
-
-        { "deepseek-flash", DeepSeekModel.Default("deepseek-flash") },
-    };
-
-    /// <summary>
-    /// All <see cref="Models.IModel"/>s
-    /// </summary>
-    public static IReadOnlyDictionary<string, IModel> Models => PrivateModelMakers;
-
-    /// <summary>
-    /// All available <see cref="Models.IModel"/>s
-    /// </summary>
-    public static IEnumerable<IModel> AvailableModels => Models.Values.Where(m => m.Available);
-
     /// <summary>
     /// The current <see cref="IHarness"/>
     /// </summary>
@@ -252,8 +208,8 @@ public sealed class Agent(PlugInToken token, IModel model, IHarness harness, str
     /// <param name="model">The AI Model</param>
     /// <param name="prompt">The default prompt</param>
     /// <returns>An Agent</returns>
-    internal static Agent GetClaudeDesktopAgent(PlugIns.PlugInToken token, string model, string prompt)
-        => new(token, new ClaudeDesktopModel(model), new ClaudeHarness(), prompt);
+    internal static Agent? GetClaudeDesktopAgent(PlugIns.PlugInToken token, string model, string prompt)
+        => Instances.Agents.FromParameters("Anthropic", AgentType.Cli)?.GetAgent(token, model, prompt);
 
     /// <summary>
     /// Returns a CodexDesktop agent that uses a <see cref="CodexHarness"/>
@@ -262,8 +218,8 @@ public sealed class Agent(PlugInToken token, IModel model, IHarness harness, str
     /// <param name="model">The AI Model</param>
     /// <param name="prompt">The default prompt</param>
     /// <returns>An Agent</returns>
-    internal static Agent GetCodexDesktopAgent(PlugIns.PlugInToken token, string model, string prompt)
-        => new(token, new CodexDesktopModel(model), new CodexHarness(), prompt);
+    internal static Agent? GetCodexDesktopAgent(PlugIns.PlugInToken token, string model, string prompt)
+        => Instances.Agents.FromParameters("OpenAI", AgentType.Cli)?.GetAgent(token, model, prompt);
 
     /// <summary>
     /// Returns a Claude agent that uses a <see cref="GenericHarness"/>
@@ -272,8 +228,8 @@ public sealed class Agent(PlugInToken token, IModel model, IHarness harness, str
     /// <param name="model">The AI Model</param>
     /// <param name="prompt">The default prompt</param>
     /// <returns>An Agent</returns>
-    internal static Agent GetClaudeAgent(PlugIns.PlugInToken token, string model, string prompt)
-        => new(token, ClaudeModel.Default(model), new GenericHarness(token), prompt);
+    internal static Agent? GetClaudeAgent(PlugIns.PlugInToken token, string model, string prompt)
+        => Instances.Agents.FromParameters("Anthropic", AgentType.Api)?.GetAgent(token, model, prompt);
 
     /// <summary>
     /// Returns a ChatGPT agent that uses a <see cref="GenericHarness"/>
@@ -282,8 +238,8 @@ public sealed class Agent(PlugInToken token, IModel model, IHarness harness, str
     /// <param name="model">The AI Model</param>
     /// <param name="prompt">The default prompt</param>
     /// <returns>An Agent</returns>
-    internal static Agent GetChatGptAgent(PlugIns.PlugInToken token, string model, string prompt)
-        => new(token, ChatGptModel.Default(model), new GenericHarness(token), prompt);
+    internal static Agent? GetChatGptAgent(PlugIns.PlugInToken token, string model, string prompt)
+        => Instances.Agents.FromParameters("OpenAI", AgentType.Api)?.GetAgent(token, model, prompt);
 
     /// <summary>
     /// Returns a Gemini agent that uses a <see cref="GenericHarness"/>
@@ -292,8 +248,8 @@ public sealed class Agent(PlugInToken token, IModel model, IHarness harness, str
     /// <param name="model">The AI Model</param>
     /// <param name="prompt">The default prompt</param>
     /// <returns>An Agent</returns>
-    internal static Agent GetGeminiAgent(PlugIns.PlugInToken token, string model, string prompt)
-        => new(token, GeminiModel.Default(model, "Google"), new GenericHarness(token), prompt);
+    internal static Agent? GetGeminiAgent(PlugIns.PlugInToken token, string model, string prompt)
+        => Instances.Agents.FromParameters("Google", AgentType.Api)?.GetAgent(token, model, prompt);
 
     /// <summary>
     /// Returns a DeepSeek agent that uses a <see cref="GenericHarness"/>
@@ -302,31 +258,54 @@ public sealed class Agent(PlugInToken token, IModel model, IHarness harness, str
     /// <param name="model">The AI Model</param>
     /// <param name="prompt">The default prompt</param>
     /// <returns>An Agent</returns>
-    internal static Agent GetDeepSeekAgent(PlugIns.PlugInToken token, string model, string prompt)
-        => new(token, DeepSeekModel.Default(model), new GenericHarness(token), prompt);
+    internal static Agent? GetDeepSeekAgent(PlugIns.PlugInToken token, string model, string prompt)
+        => Instances.Agents.FromParameters("DeepSeek", AgentType.Api)?.GetAgent(token, model, prompt);
 
     /// <summary>
     /// Returns a LMStudio agent that uses a <see cref="GenericHarness"/>
     /// </summary>
     /// <param name="token">The permissions token</param>
+    /// <param name="vendor">The AI Model vendor</param>
     /// <param name="model">The AI Model</param>
+    /// <param name="prompt">The default prompt</param>
+    /// <returns>An Agent</returns>
+    internal static Agent? GetLocalAgent(PlugIns.PlugInToken token, string vendor, string model, string prompt)
+        => Instances.Agents.FromParameters(vendor, AgentType.Local)?.GetAgent(token, model, prompt);
+    
+    /// <summary>
+    /// Returns a LMStudio agent that uses a <see cref="GenericHarness"/>
+    /// </summary>
+    /// <param name="token">The permissions token</param>
+    /// <param name="protocol">The Protocl method the model uses to communicate</param>
+    /// <param name="model">The AI Model</param>
+    /// <param name="vendor">The AI Vendor</param>
     /// <param name="server">The server of the local model. Usually http://localhost:port</param>
     /// <param name="prompt">The default prompt</param>
     /// <returns>An Agent</returns>
-    internal static Agent GetLocalAgent(PlugIns.PlugInToken token, string model, Uri server, string prompt)
-        => new(token, LocalModel.Default(model, server), new GenericHarness(token), prompt);
+    internal static Agent? GetCustomAgent(PlugIns.PlugInToken token, ProtocolKind protocol, string model, string vendor, Uri server, string prompt)
+    {
+        // TODO : throw may be better?
+        IModel? modelInstance = protocol switch
+        {
+            ProtocolKind.Messages => UnknownModel.Anthropic(model, vendor, server),
+            ProtocolKind.Completions => UnknownModel.Completions(model, vendor, server),
+            ProtocolKind.Responses => UnknownModel.Responses(model, vendor, server),
+
+            _ => null
+        };
+        if (modelInstance is null) return null;
+        // TODO : ?? Or not ? => Instances.Agents.FromParameters("OpenAI", false)?.GetAgent(token, model, prompt);
+        return new(token, modelInstance, new GenericHarness(token), prompt);
+    }
 
     /// <summary>
-    /// Returns the users prefered agent, harness and overall config
+    /// Returns the users prefered agent, harness, and overall config
     /// </summary>
     /// <param name="token">The permissions token</param>
     /// <param name="prompt">The starting prompt</param>
     /// <returns>An Agent</returns>
     public static Agent? GetPreferredAgent(PlugIns.PlugInToken token, string prompt)
-    {
-        if (!PrivateModelMakers.TryGetValue(UserSettings.PreferredModel, out IModel? model) || model is null) return null;
-        return FromModel(token, model, prompt);
-    }
+        => Instances.Agents.PreferredDefinition?.GetAgent(token, prompt);
 
     /// <summary>
     /// Returns an Agent that uses the appropriate <see cref="IHarness"/>
@@ -335,7 +314,7 @@ public sealed class Agent(PlugInToken token, IModel model, IHarness harness, str
     /// <param name="model">The AI Model</param>
     /// <param name="prompt">The default prompt</param>
     /// <returns>An Agent</returns>
-    public static Agent FromModel(PlugInToken token, IModel model, string prompt) => model switch
+    internal static Agent? FromModel(PlugInToken token, IModel model, string prompt) => model switch
     {
         ClaudeDesktopModel => GetClaudeDesktopAgent(token, model.Name, prompt),
         CodexDesktopModel => GetCodexDesktopAgent(token, model.Name, prompt),
@@ -345,7 +324,8 @@ public sealed class Agent(PlugInToken token, IModel model, IHarness harness, str
         ClaudeModel => GetClaudeAgent(token, model.Name, prompt),
         ChatGptModel => GetChatGptAgent(token, model.Name, prompt),
         GeminiModel => GetGeminiAgent(token, model.Name, prompt),
-        LocalModel => GetLocalAgent(token, model.Name, UserSettings.DefaultLocalModelUri, prompt),
+
+        LocalModel => GetLocalAgent(token, model.Vendor, model.Name, prompt),
 
         _ => new Agent(token, model, new GenericHarness(token), prompt),
     };

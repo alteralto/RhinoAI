@@ -120,9 +120,10 @@ internal sealed class CodexHarness : IHarness
         return turns;
     }
 
-    private Process GetCodexProcess(CancellationToken token)
+    private Process GetCodexProcess(IModel model, CancellationToken token)
     {
-        string exePath = CodexDesktopModel.ExePath;
+        CodexDesktopModel codexModel = (CodexDesktopModel)model;
+        string exePath = codexModel.ExePath;
 
         Process process = new()
         {
@@ -150,7 +151,7 @@ internal sealed class CodexHarness : IHarness
 
     private AIProcess StartCodex(Agent agent, IEnumerable<ITurn> start, IReadOnlyList<string> imagePaths, CancellationToken token)
     {
-        Process process = GetCodexProcess(token);
+        Process process = GetCodexProcess(agent.Model, token);
 
         process.StartInfo.ArgumentList.Add("exec");
 
@@ -565,7 +566,7 @@ internal sealed class CodexHarness : IHarness
     // TODO : Pin the MCP protocol version via env var once Codex has one that works (CODEX_MCP_PROTOCOL_VERSION had no effect, still sends 2025-06-18)
     private IEnumerable<string> GetMcpArgs()
     {
-        string disabledTools = TomlArray(UserSettings.Permissions.ProhibitedTools().Select(permission => permission.ToolName));
+        string disabledTools = TomlArray(UserPreferences.Permissions.ProhibitedTools().Select(permission => permission.ToolName));
         string timeouts = $"startup_timeout_sec={(long)McpTimeouts.Startup.TotalSeconds}, tool_timeout_sec={(long)McpTimeouts.ToolCall.TotalSeconds}";
 
         foreach (IMcp mcp in Mcps.Values)

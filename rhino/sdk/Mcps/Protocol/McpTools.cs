@@ -12,7 +12,7 @@ internal static class McpTools
 
     public static JsonArray List(McpSession session)
     {
-        HashSet<string> denied = new(UserSettings.Permissions.ProhibitedTools()
+        HashSet<string> denied = new(UserPreferences.Permissions.ProhibitedTools()
             .Where(permission => permission.McpName == session.Mcp.Name)
             .Select(permission => permission.ToolName), StringComparer.OrdinalIgnoreCase);
 

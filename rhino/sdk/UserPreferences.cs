@@ -9,12 +9,10 @@ namespace Rhino.AI;
 /// <summary>
 /// Global User Preferences for AI Models, Agents
 /// </summary>
-public static class UserSettings
+public static class UserPreferences
 {
     
-    public static string PreferredModel { get; set; } = string.Empty;
-
-    public static Uri DefaultLocalModelUri { get; set; } = new Uri("http://localhost:1234");
+    public static Guid AgentId { get; }
 
     public static PermissionSet Permissions { get; } = new();
 

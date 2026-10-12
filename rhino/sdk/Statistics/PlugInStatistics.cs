@@ -4,6 +4,9 @@ using System.Collections.Generic;
 
 namespace Rhino.AI.Statistics;
 
+/// <summary>
+/// Internalised usage statistics for the user to evaluate agent usage and performance
+/// </summary>
 internal class PlugInStatistics
 {
 

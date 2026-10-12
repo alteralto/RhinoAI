@@ -195,9 +195,10 @@ internal sealed class ClaudeHarness : IHarness
         return turns;
     }
 
-    private Process GetClaudeProcess(CancellationToken token)
+    private Process GetClaudeProcess(CancellationToken token, IModel model)
     {
-        string exePath = ClaudeDesktopModel.ExePath;
+        ClaudeDesktopModel claudeModel = (ClaudeDesktopModel)model;
+        string exePath = claudeModel.ExePath;
 
         Process process = new()
         {
@@ -225,7 +226,7 @@ internal sealed class ClaudeHarness : IHarness
 
     private AIProcess StartClaude(Agent agent, IEnumerable<ITurn> start, CancellationToken token)
     {
-        Process process = GetClaudeProcess(token);
+        Process process = GetClaudeProcess(token, agent.Model);
 
         process.StartInfo.Environment["MCP_TIMEOUT"] = ((long)McpTimeouts.Startup.TotalMilliseconds).ToString(CultureInfo.InvariantCulture);
 
@@ -260,7 +261,7 @@ internal sealed class ClaudeHarness : IHarness
 
         // --disallowedTools, --disallowed-tools <tools...> Comma or space-separated list of tool names to deny (e.g. "Bash(git *) Edit")
         string disallowedTools = string.Empty;
-        foreach (Permission permission in UserSettings.Permissions.ProhibitedTools())
+        foreach (Permission permission in UserPreferences.Permissions.ProhibitedTools())
         {
             disallowedTools += $"mcp__{CoerceMcpName(permission.McpName)}__{permission.ToolName}";
             // permission.ArgumentPermissions // TODO : Use these for smarter permissions

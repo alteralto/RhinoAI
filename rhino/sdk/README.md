@@ -1,15 +1,37 @@
 # RhinoAI SDK
 
-## Agents
+## PlugIns
 
-For the SDK you can create an Agent for each problem or task.
+Using the SDK you can register a 3rd party plugin and hook into Rhino's Agentic system.
+Once registered you receive a permission token that must be used for every call.
 
 ``` cs
-IModel model = DeepSeekModel.Completions("deepseek-flash");
-GenericHarness harness = new(Token);
-Agent agent = new(Token, model, harness);
+PlugInToken token = PlugInRegistry.Register();
+```
 
-IEnumerable<ITurn> turns = await agent.SendAsync("Hello! What is the weather today in Florida?", token);
+Skills can be registered to the AI Panel to help RhinoAI better know your plugin.
+
+``` cs
+PlugInRegistry.RegisterPanelSkill(token, skill);
+```
+
+MCPs can also be registered to the AI Panel to give RhinoAI more toolsets.
+
+``` cs
+MemoryMcp mcp = new ("MyPluginsMcp");
+mcp.RegisterTool(MyTool);
+PlugInRegistry.RegisterPanelMcp(mcp, skill);
+```
+
+## Agents
+
+With the SDK you can create an AI Agent for any problem or task.
+`GetPreferredAgent` will give you the users preferred Agent.
+This Agent is **not** the same as the AI Panel's and can operate concurrently to it.
+
+``` cs
+Agent agent = Agent.GetPreferredAgent(token, "");
+IEnumerable<ITurn> turns = await agent.SendAsync("Hello! What is the weather today in Florida?");
 ```
 
 ## Models
@@ -26,7 +48,10 @@ MCPs are toolboxes for Agents to use in their harness.
 
 ## Permissions
 
-When using the Agent you'll need to pass in a PlugInToken. The Token should be registered from the PlugInLoad method.
+The PlugInToken registered earlier is keyed to a permission set the user approves.
+Before the first `agent.SendAsync` call can succeed, the user **must** approve your plugin in the AI Settings.
+
+After that various calls run by the agents will be approved by the user.
 
 ``` cs
 PlugInToken token = PlugInRegistry.Register();

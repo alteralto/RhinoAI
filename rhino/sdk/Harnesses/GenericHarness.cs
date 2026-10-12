@@ -31,7 +31,7 @@ public class GenericHarness : IHarness
     public GenericHarness(PlugIns.PlugInToken token)
     {
         Loop = new(this);
-        Permissions = UserSettings.Permissions;
+        Permissions = UserPreferences.Permissions;
         AddMcp(new DefaultToolsMcp(this, token));
     }
 
@@ -69,7 +69,7 @@ public class GenericHarness : IHarness
             return ToolReturn.Failure($"Tool named {toolName} is not available in {mcpName}", $"Did you mean {likelyToolString}?");
         }
 
-        Permissability permissability = UserSettings.Permissions.HasPermission(mcpName, toolName, args);
+        Permissability permissability = UserPreferences.Permissions.HasPermission(mcpName, toolName, args);
         if (permissability == Permissability.Deny) return ToolReturn.Refused();
         if (permissability == Permissability.Ask && harness.AskUser is not null)
         {
