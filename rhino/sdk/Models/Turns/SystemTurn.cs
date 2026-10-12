@@ -1,3 +1,5 @@
+using System.Text.Json.Serialization;
+
 namespace Rhino.AI;
 
 /// <summary>The operator instruction a transcript opens with. Every endpoint carries it in a field of its own, outside the message list.</summary>
@@ -9,6 +11,9 @@ internal sealed record SystemTurn : Turn
         Data = prompt;
         Role = RoleType.System;
     }
+
+    [JsonIgnore]
+    public string Prompt => Data;
 
     public override ITurn Copy() => this;
 

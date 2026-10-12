@@ -10,8 +10,7 @@ namespace Rhino.AI;
 internal abstract record Turn : ITurn
 {
     
-    [JsonPropertyName("type")]
-    public string Type { get; }
+    public string Type { get; init;}
 
     public Turn(string type)
     {

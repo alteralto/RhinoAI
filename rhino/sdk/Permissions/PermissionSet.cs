@@ -13,16 +13,19 @@ public sealed class PermissionSet
 
     private HashSet<Permission> Permissions { get; } = new();
 
-    public Permissability HasPermission(IMcp mcp, ITool tool, IReadOnlyList<IToolArg> args)
+    public Permissability HasPermission(IMcp mcp, ITool tool, IList<IToolArg> args)
         => HasPermission(mcp.Name, tool.Name, args);
 
-    public Permissability HasPermission(string mcpName, string toolName, IReadOnlyList<IToolArg> args)
+    public Permissability HasPermission(string mcpName, string toolName, IList<IToolArg> args)
     {
         Permissability result = DefaultPermission;
-        foreach(Permission permission in Permissions)
+        foreach (Permission permission in Permissions)
         {
-            if (!string.Equals(permission.McpName, mcpName)) continue;
-            if (!string.Equals(permission.ToolName, toolName)) continue;
+            if (!string.Equals(permission.McpName, mcpName) &&
+                !string.Equals(permission.McpName, "*")) continue;
+
+            if (!string.Equals(permission.ToolName, toolName) &&
+                !string.Equals(permission.ToolName, "*")) continue;
 
             // TODO : What if there are multiple entries
             result = ResolvePermissions(permission, args);
@@ -49,8 +52,11 @@ public sealed class PermissionSet
         }
     }
 
-    private Permissability ResolvePermissions(Permission permission, IReadOnlyList<IToolArg> args)
+    private Permissability ResolvePermissions(Permission permission, IList<IToolArg> args)
     {
+        if (permission.ArgumentPermissions.Count != args.Count)
+            return DefaultPermission;
+
         foreach (IToolArg inputArg in args)
         {
             if (permission.ArgumentPermissions.TryGetValue(inputArg.Name, out ToolArgPermission argPermission))
@@ -90,6 +96,7 @@ public sealed class PermissionSet
         ToolPath path => rule.MatchesPath(path.Value),
         ToolUrl url => rule.MatchesUrl(url.Value),
         ToolString text => rule.MatchesText(text.Value),
+        ToolSecret secret => rule.MatchesText(secret.Value),
 
         _ => false
     };
@@ -98,7 +105,19 @@ public sealed class PermissionSet
 
 public enum Permissability { Always, Ask, Deny };
 
-public record struct ToolArgPermission(string ArgName, Permissability Permissability, string Value);
+public readonly record struct ToolArgPermission
+{
+
+    public string ArgName { get; }
+    public string Value { get; }
+
+    public ToolArgPermission(string argName, string value)
+    {
+        ArgName = argName;
+        Value = value;
+    }
+
+}
 
 public sealed record Permission
 {
@@ -110,6 +129,14 @@ public sealed record Permission
     public Permissability Permissability { get; }
 
     public IReadOnlyDictionary<string, ToolArgPermission> ArgumentPermissions { get; }
+
+    internal Permission(string mcpName, string toolName, Permissability permissability, Dictionary<string, ToolArgPermission> argumentPermissions)
+    {
+        McpName = mcpName;
+        ToolName = toolName;
+        Permissability = permissability;
+        ArgumentPermissions = argumentPermissions;
+    }
 
     public Permission(IMcp mcp, ITool tool, Permissability permissability, Dictionary<string, ToolArgPermission> argumentPermissions)
     {

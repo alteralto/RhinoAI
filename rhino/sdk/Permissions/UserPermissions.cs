@@ -3,6 +3,8 @@ using System.Collections.Generic;
 
 namespace Rhino.AI;
 
+// TODO : Move to Instances or UserPreferences or something
+
 /// <summary>
 /// User specified permissions
 /// </summary>

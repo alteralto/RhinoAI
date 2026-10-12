@@ -9,7 +9,8 @@ internal sealed class TurnJsonConverter : JsonConverter<ITurn>
     {
         using JsonDocument doc = JsonDocument.ParseValue(ref reader);
         JsonElement root = doc.RootElement;
-        string? disc = root.TryGetProperty("type", out JsonElement d) ? d.GetString() : null;
+        string? disc = root.TryGetProperty("Type", out JsonElement d) ? d.GetString() : null;
+        // TODO : Is this feasible or nah?
         return disc?.ToLowerInvariant() switch
         {
             "message" => root.Deserialize<MessageTurn>(options),

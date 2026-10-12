@@ -76,7 +76,8 @@ public class AgentTests
         WeatherTool tool = new();
         mcp.RegisterTool(tool);
 
-        Agent agent = Agent.GetLocalAgent(Token, "qwen/qwen3-1.7b", new("http://localhost:1234"), "");
+        Agent? agent = Agent.GetLocalAgent(Token, "qwen/qwen3-1.7b", new("http://localhost:1234"), "");
+        Assert.That(agent, Is.Not.Null);
         agent.Harness.AddMcp(mcp);
 
         IEnumerable<ITurn> turns = await agent.SendAsync("Hello! What is the weather today in Tampa Florida?", token);
@@ -111,7 +112,8 @@ public class AgentTests
         WeatherTool tool = new();
         mcp.RegisterTool(tool);
 
-        Agent agent = Agent.GetClaudeDesktopAgent(Token, "opus", "");
+        Agent? agent = Agent.GetClaudeDesktopAgent(Token, "opus", "");
+        Assert.That(agent, Is.Not.Null);
         agent.Harness.AddMcp(mcp);
 
         ClaudeHarness harness = (ClaudeHarness)agent.Harness;
@@ -136,7 +138,8 @@ public class AgentTests
         WeatherTool tool = new();
         mcp.RegisterTool(tool);
 
-        Agent agent = Agent.GetCodexDesktopAgent(Token, "gpt-6-astra", "");
+        Agent? agent = Agent.GetCodexDesktopAgent(Token, "gpt-6-astra", "");
+        Assert.That(agent, Is.Not.Null);
         agent.Harness.AddMcp(mcp);
 
         CodexHarness harness = (CodexHarness)agent.Harness;
@@ -177,7 +180,8 @@ public class AgentTests
 
     private static Process GetClaudeProcess()
     {
-        string exePath = ClaudeDesktopModel.ExePath;
+        ClaudeDesktopModel desktopModel = (ClaudeDesktopModel)Instances.Agents.FromParameters("Anthropic", AgentType.Cli)?.GetModel("opus")!;
+        string exePath = desktopModel.ExePath;
 
         Process process = new()
         {

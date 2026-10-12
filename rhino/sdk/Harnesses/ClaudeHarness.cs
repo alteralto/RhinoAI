@@ -40,7 +40,7 @@ internal sealed class ClaudeHarness : IHarness
     public async IAsyncEnumerable<ITurn> StreamLoopAsync(Agent agent, IEnumerable<ITurn> start, [EnumeratorCancellation] CancellationToken token)
     {
         if (agent.Model is not ClaudeDesktopModel claudeModel) yield break;
-        if (!await EnsureLoggedIn(token))
+        if (!await EnsureLoggedIn(token, claudeModel))
         {
             yield return new MessageTurn("Not Logged In", RoleType.System, DateTime.UtcNow, TimeSpan.Zero, 0);
             yield break;
@@ -105,12 +105,12 @@ internal sealed class ClaudeHarness : IHarness
     }
 
     private bool LoggedIn { get; set; } = false;
-    private async Task<bool> EnsureLoggedIn(CancellationToken token)
+    private async Task<bool> EnsureLoggedIn(CancellationToken token, ClaudeDesktopModel claudeModel)
     {
         if (LoggedIn) return true;
         try
         {
-            using Process claude = GetClaudeProcess(token);
+            using Process claude = GetClaudeProcess(token, claudeModel);
             claude.StartInfo.ArgumentList.Add("auth");
             claude.StartInfo.ArgumentList.Add("status");
 
@@ -138,7 +138,7 @@ internal sealed class ClaudeHarness : IHarness
                 LoggedIn = true;
                 return LoggedIn;
             }
-            LoggedIn = await LogIn(token);
+            LoggedIn = await LogIn(token, claudeModel);
             return LoggedIn;
         }
         catch
@@ -147,9 +147,9 @@ internal sealed class ClaudeHarness : IHarness
         }
     }
 
-    private async Task<bool> LogIn(CancellationToken token)
+    private async Task<bool> LogIn(CancellationToken token, ClaudeDesktopModel model)
     {
-        using Process claude = GetClaudeProcess(token);
+        using Process claude = GetClaudeProcess(token, model);
         claude.StartInfo.ArgumentList.Add("auth");
         claude.StartInfo.ArgumentList.Add("login");
         claude.StartInfo.ArgumentList.Add("--claudeai");

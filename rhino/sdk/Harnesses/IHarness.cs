@@ -12,6 +12,7 @@ namespace Rhino.AI;
 public interface IHarness
 {
 
+    /// <summary>Configuration for the Harness</summary>
     public HarnessConfig Config { get; }
 
 #region Extensions
@@ -91,6 +92,7 @@ public interface IHarness
 public sealed class HarnessConfig
 {
     
+    /// <summary>The working directory of the Harness</summary>
     public string CurrentWorkingDirectory { get; set; } = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
 
 }
