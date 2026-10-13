@@ -21,6 +21,7 @@ internal sealed class GeminiModel : ApiModel
     /// <summary>A Gemini Model using the default protocol.</summary>
     public static GeminiModel Default(string modelName) => GenerateContent(modelName);
     
+    /// <summary>A Gemini Model using the content protocol.</summary>
     public static GeminiModel GenerateContent(string modelName) => new(modelName, Protocol.GenerateContent("/v1beta/models"));
     
     /// <summary>A Gemini Model using the completions protocol.</summary>

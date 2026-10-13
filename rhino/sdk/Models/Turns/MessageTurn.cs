@@ -38,26 +38,48 @@ internal sealed record MessageTurn : Turn
 
 }
 
+/// <summary>
+/// Content for a Message Turn
+/// </summary>
 [JsonConverter(typeof(MessageJsonConverter))]
-public interface IMessageContent
+internal interface IMessageContent
 {
+    
+    /// <summary>A Copy of the content</summary>
     public IMessageContent Copy();
+    
+    /// <summary>The Type of the Content</summary>
     public string Type { get; }
+
 }
 
-public sealed record TextContent(string Text) : IMessageContent
+/// <summary>
+/// Text content
+/// </summary>
+/// <param name="Text">The content</param>
+internal sealed record TextContent(string Text) : IMessageContent
 {
     public string Type { get; init; } = "text";
     public IMessageContent Copy() => this;
 }
 
-public sealed record ImageContent(byte[] Bytes, string MediaType) : IMessageContent
+/// <summary>
+/// Image content
+/// </summary>
+/// <param name="Bytes">The bytes of the image</param>
+/// <param name="MediaType">The image type</param>
+internal sealed record ImageContent(byte[] Bytes, string MediaType) : IMessageContent
 {
     public string Type { get; init; } = "image";
     public IMessageContent Copy() => new ImageContent([.. Bytes], MediaType);
 }
 
-public sealed record FileContent(Uri Uri, string MediaType) : IMessageContent
+/// <summary>
+/// File content
+/// </summary>
+/// <param name="Uri">The path of the file</param>
+/// <param name="MediaType">The files content</param>
+internal sealed record FileContent(Uri Uri, string MediaType) : IMessageContent
 {
     public string Type { get; init; } = "file";
     public IMessageContent Copy() => this;

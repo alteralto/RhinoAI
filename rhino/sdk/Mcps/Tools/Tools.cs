@@ -57,6 +57,14 @@ public abstract record Tool : ITool
 
     public ToolParameter[] Args { get; }
     
+    /// <summary>
+    /// Constructs an MCP Tool
+    /// </summary>
+    /// <param name="name">The tool name, do not use spaces, a-z, 0-9 only</param>
+    /// <param name="description">A short description of the tool and what it does</param>
+    /// <param name="readOnly">True if the tool modifies anything</param>
+    /// <param name="destructive">True if the tool delete anything</param>
+    /// <param name="args">Input arguments for the tool</param>
     public Tool(string name, string description, bool readOnly, bool destructive, ToolParameter[] args)
     {
         Name = CorrectName(name);

@@ -28,6 +28,7 @@ public class GenericHarness : IHarness
 
     public HarnessConfig Config { get; } = new();
 
+    // NOTE : Token in harness is a bit iffy. BUT. In theory this is only used by one plugin and not shared...
     public GenericHarness(PlugIns.PlugInToken token)
     {
         Loop = new(this);

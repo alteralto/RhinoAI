@@ -9,13 +9,30 @@ namespace Rhino.AI;
 public sealed class PermissionSet
 {
 
+    /// <summary>
+    /// The default permission used when no prior permission has been requested
+    /// </summary>
     public Permissability DefaultPermission { get; set; } = Permissability.Ask;
 
     private HashSet<Permission> Permissions { get; } = new();
 
+    /// <summary>
+    /// What permission does this mcp/tool with the given args have?
+    /// </summary>
+    /// <param name="mcp">The MCP</param>
+    /// <param name="tool">A Tool of this MCP</param>
+    /// <param name="args">The arguments</param>
+    /// <returns>The given permission, or the default if none is found</returns>
     public Permissability HasPermission(IMcp mcp, ITool tool, IList<IToolArg> args)
         => HasPermission(mcp.Name, tool.Name, args);
 
+    /// <summary>
+    /// What permission does this mcp/tool with the given args have?
+    /// </summary>
+    /// <param name="mcpName">The name of the MCP</param>
+    /// <param name="toolName">The name of the Tool</param>
+    /// <param name="args">The arguments</param>
+    /// <returns>The given permission, or the default if none is found</returns>
     public Permissability HasPermission(string mcpName, string toolName, IList<IToolArg> args)
     {
         Permissability result = DefaultPermission;
@@ -33,7 +50,10 @@ public sealed class PermissionSet
 
         return result;
     }
-
+    
+    /// <summary>
+    /// All tools that are Permissability.Always
+    /// </summary>
     public IEnumerable<Permission> AllowedTools()
     {
         foreach (Permission permission in Permissions)
@@ -43,6 +63,9 @@ public sealed class PermissionSet
         }
     }
 
+    /// <summary>
+    /// All tools that are Permissability.Deny
+    /// </summary>
     public IEnumerable<Permission> ProhibitedTools()
     {
         foreach (Permission permission in Permissions)
@@ -103,8 +126,14 @@ public sealed class PermissionSet
 
 }
 
+/// <summary>
+/// The current permission of a tool
+/// </summary>
 public enum Permissability { Always, Ask, Deny };
 
+/// <summary>
+/// A given tool argument permission
+/// </summary>
 public readonly record struct ToolArgPermission
 {
 
@@ -119,15 +148,30 @@ public readonly record struct ToolArgPermission
 
 }
 
+/// <summary>
+/// A single permission for a specific tool
+/// </summary>
 public sealed record Permission
 {
 
+    /// <summary>
+    /// The name of the MCP the tool belongs to
+    /// </summary>
     public string McpName { get; }
 
+    /// <summary>
+    /// The name of the Tool
+    /// </summary>
     public string ToolName { get; }
 
+    /// <summary>
+    /// The users specified permission
+    /// </summary>
     public Permissability Permissability { get; }
 
+    /// <summary>
+    /// The permission argumnets
+    /// </summary>
     public IReadOnlyDictionary<string, ToolArgPermission> ArgumentPermissions { get; }
 
     internal Permission(string mcpName, string toolName, Permissability permissability, Dictionary<string, ToolArgPermission> argumentPermissions)
@@ -137,7 +181,7 @@ public sealed record Permission
         Permissability = permissability;
         ArgumentPermissions = argumentPermissions;
     }
-
+    
     public Permission(IMcp mcp, ITool tool, Permissability permissability, Dictionary<string, ToolArgPermission> argumentPermissions)
     {
         McpName = mcp.Name;

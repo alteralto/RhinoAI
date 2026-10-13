@@ -10,7 +10,7 @@ namespace Rhino.AI.Models;
 /// <summary>
 /// An AI Model
 /// </summary>
-public interface IModel
+internal interface IModel
 {
     
     /// <summary>The Name of the Model</summary>

@@ -42,33 +42,31 @@ public sealed record DelegateTool(PlugIns.PlugInToken token) : Tool("delegate",
         if (!args.TryGetString(Args[1].Name, out string prompt))
             return ToolReturn.Failure("prompt parameter is mandatory", "Call delegate again with context set to everything the sub agent needs, since it starts with none.");
 
-        if (!Instances.Agents.Definitions.Any(d => d.ModelDefinitions.Count > 0))
+        if (!Instances.Agents.Definitions.Any(d => d.AvailableModels.Count > 0))
         {
             return ToolReturn.Failure("This session cannot create sub agents.", "Do the work yourself instead of delegating it.");
         }
 
-        if (!TryGetModel(modelName, out Models.IModel? model))
+        IEnumerable<(IAgentDefinition, IModel)> filteredModels = AvailableModels(modelName);
+        if (filteredModels is null || !filteredModels.Any())
         {
-            IEnumerable<Models.IModel> availableModels = AvailableModels();
-
-            IEnumerable<Models.IModel> likelyModels = availableModels
-                .OrderByDescending(m => Fuzz.WeightedRatio(modelName, m.Name, PreprocessMode.Full))
-                .Take(3);
+            IEnumerable<IModel> availableModels = AvailableModels()
+                                                    .Select(i => i.Item2).ToHashSet(new ModelComparer());
+            IEnumerable<IModel> likelyModels = availableModels
+                                                    .OrderByDescending(m => Fuzz.WeightedRatio(modelName, m.Name, PreprocessMode.Full))
+                                                    .Take(3);
             IEnumerable<string> likelyModelNames = likelyModels.Select(t => t.Name);
             string likelyModelString = string.Join(" or ", likelyModelNames);
             return ToolReturn.Failure($"{modelName} is not available", $"Did you mean {likelyModelString}?");
         }
 
-        if (model is null || !model.Available)
-        {
-            return ToolReturn.Failure($"{modelName} is not available", $"Try one of {string.Join(", ", AvailableModels().Select(m => m.Name))}");
-        }
-
-        Agent? agent = Agent.FromModel(Token, model, prompt);
+        // TODO : Choose model
+        IAgentDefinition definition = filteredModels.First().Item1;
+        Agent? agent = definition.WithModel(Token, modelName);
         if (agent is null)
         {
-            // TODO : Improve this message. I don't know why it would ever happen
-            return ToolReturn.Failure($"{model.Name} is not available", $"Try one of {string.Join(", ", AvailableModels().Select(m => m.Name))}");
+            // TODO : Improve this message. Why it this ever happen?
+            return ToolReturn.Failure($"{modelName} is not available", $"Try one of {string.Join(", ", filteredModels.Select(m => m.Item2.Name))}");
         }
 
         IEnumerable<ITurn> turns = await agent.SendAsync(context, token).ConfigureAwait(false);
@@ -87,7 +85,7 @@ public sealed record DelegateTool(PlugIns.PlugInToken token) : Tool("delegate",
             : ToolReturn.Success(report.ToString().TrimEnd());
     }
 
-    private class ModelCompraer : IEqualityComparer<IModel>
+    private class ModelComparer : IEqualityComparer<IModel>
     {
         public bool Equals(IModel? x, IModel? y)
         {
@@ -102,39 +100,27 @@ public sealed record DelegateTool(PlugIns.PlugInToken token) : Tool("delegate",
         
     }
 
-    private static HashSet<IModel> AvailableModels()
+    private static List<(IAgentDefinition, IModel)> AvailableModels(string? modelName = null)
     {
-        HashSet<IModel> models = new (new ModelCompraer());
+        // TODO : Put the preferred agent _first_
+
+        List<(IAgentDefinition, IModel)> pairs = new ();
         foreach(IAgentDefinition agentDef in Instances.Agents.Definitions)
         {
-            foreach(ModelDefinition modelDef in agentDef.ModelDefinitions)
+            if (!agentDef.Available) continue;
+            foreach(ModelDefinition modelDef in agentDef.AvailableModels)
             {
-                IModel? model = agentDef.GetModel(modelDef.Id);
+                IModel? model = agentDef.GetModel(modelDef.ModelId);
                 if (model is null) continue;
-                models.Add(model);
+                if (!string.IsNullOrEmpty(modelName))
+                {
+                    if (!string.Equals(model.Name, modelName, System.StringComparison.OrdinalIgnoreCase)) continue;
+                }
+                pairs.Add((agentDef, model));
             }
         }
 
-        return models;
-    }
-
-    // TODO : Surely this should also ensure that the definition is desktoppy or api'y or local-y etc.
-    // BUG : A Desktop model delegating could end up calling an API model or VICE VERSA
-    private static bool TryGetModel(string modelName, out IModel? model)
-    {
-        // Start with the Default
-        model = Instances.Agents.PreferredDefinition?.GetModel(modelName);
-        if (model is not null) return true;
-
-        foreach(IAgentDefinition def in Instances.Agents.Definitions)
-        {
-            model = def.GetModel(modelName);
-            if (model is null) continue;
-            return true;
-        }
-
-        model = default!;
-        return false;
+        return pairs;
     }
 
 }
