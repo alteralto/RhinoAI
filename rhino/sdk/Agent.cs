@@ -128,7 +128,7 @@ public sealed class Agent
             if (!PlugInRegistry.HasPermission(Token))
                 throw new PermissionException($"PlugIn {Token.Name} does not have permission");
 
-            if (!UserPermissions.IsPermitted(Model.Vendor, Model.Name))
+            if (!Instances.Preferences.IsPermitted(Model.Vendor, Model.Name))
                 throw new PermissionException("Model or Vendor does not have permission.");
 
             List<ITurn> newTurns = [];

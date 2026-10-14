@@ -14,7 +14,7 @@ internal sealed class Agents
     public IReadOnlyCollection<IAgentDefinition> Definitions => PrivateDefinitions.Values;
 
     public IAgentDefinition? PreferredDefinition
-        => PrivateDefinitions.TryGetValue(UserPreferences.AgentId, out IAgentDefinition? def) ? def : null;
+        => PrivateDefinitions.TryGetValue(Instances.Preferences.AgentId, out IAgentDefinition? def) ? def : null;
 
     public bool Add(IAgentDefinition definition)
         => PrivateDefinitions.TryAdd(definition.Id, definition);

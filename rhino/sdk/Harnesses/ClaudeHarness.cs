@@ -261,7 +261,7 @@ internal sealed class ClaudeHarness : IHarness
 
         // --disallowedTools, --disallowed-tools <tools...> Comma or space-separated list of tool names to deny (e.g. "Bash(git *) Edit")
         string disallowedTools = string.Empty;
-        foreach (Permission permission in UserPreferences.Permissions.ProhibitedTools())
+        foreach (Permission permission in Instances.Preferences.Permissions.ProhibitedTools())
         {
             disallowedTools += $"mcp__{CoerceMcpName(permission.McpName)}__{permission.ToolName}";
             // permission.ArgumentPermissions // TODO : Use these for smarter permissions
@@ -275,7 +275,7 @@ internal sealed class ClaudeHarness : IHarness
         process.StartInfo.ArgumentList.Add("--model");
         process.StartInfo.ArgumentList.Add(agent.Model.Name);
 
-        if (UserPermissions.IsPermitted("anthropic", "opus"))
+        if (Instances.Preferences.IsPermitted("anthropic", "opus"))
         {
             // --fallback-model <model>              Enable automatic fallback to specified model(s) when the default model is overloaded or not available.
             process.StartInfo.ArgumentList.Add("--fallback-model");

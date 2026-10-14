@@ -53,7 +53,7 @@ public interface IAgentDefinition
 
 internal abstract class AgentDefinition(string vendor, string displayName) : IAgentDefinition
 {
-    
+
     public Guid Id { get; init; } = Guid.NewGuid();
 
     public string Vendor { get; } = vendor;
@@ -68,8 +68,9 @@ internal abstract class AgentDefinition(string vendor, string displayName) : IAg
 
     public string? CurrentModelId { get; set; }
 
-    protected List<ModelDefinition> PrivateModelDefinitions { get; } = [];
-    public IReadOnlyList<ModelDefinition> AvailableModels => PrivateModelDefinitions;
+    public HashSet<ModelDefinition> AvailableModels { get; init; } = [];
+
+    public bool Add(ModelDefinition definition) => AvailableModels.Add(definition);
 
     public abstract bool Available { get; }
 
@@ -78,7 +79,7 @@ internal abstract class AgentDefinition(string vendor, string displayName) : IAg
     {
         get
         {
-            foreach(WeakReference<Agent> agentRef in PrivateRegisteredAgents)
+            foreach (WeakReference<Agent> agentRef in PrivateRegisteredAgents)
             {
                 if (!agentRef.TryGetTarget(out Agent? agent)) continue;
                 if (agent is null) continue;
@@ -86,10 +87,10 @@ internal abstract class AgentDefinition(string vendor, string displayName) : IAg
             }
         }
     }
-    
+
     public void RegisterAgent(Agent agent)
     {
-        PrivateRegisteredAgents.Add(new (agent));
+        PrivateRegisteredAgents.Add(new(agent));
     }
 
     public IModel? CurrentModel => GetModel(CurrentModelId ?? DefaultModelId ?? "");
@@ -97,7 +98,7 @@ internal abstract class AgentDefinition(string vendor, string displayName) : IAg
     public abstract IModel? GetModel(string modelName);
 
     public abstract Agent? WithModel(PlugIns.PlugInToken token, string modelName);
-    
+
     public abstract Agent? GetAgent(PlugIns.PlugInToken token);
 
 }
@@ -127,7 +128,7 @@ internal sealed class CliAgentDefinition(string vendor, string displayName) : Ag
 
     public override IModel? GetModel(string modelName)
     {
-        ModelDefinition? def = PrivateModelDefinitions.FirstOrDefault(pd => string.Equals(pd.ModelId, modelName, StringComparison.OrdinalIgnoreCase));
+        ModelDefinition? def = Models.FirstOrDefault(pd => string.Equals(pd.ModelId, modelName, StringComparison.OrdinalIgnoreCase));
         if (def is null) return null;
 
         IEnumerable<string> searchPaths = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? WinSearchPaths : MacSearchPaths;
@@ -211,13 +212,13 @@ internal sealed class HttpAgentDefinition(string vendor, string displayName) : A
             PrivateApiKey = this.PrivateApiKey,
             CurrentModelId = modelName
         };
-        
+
         return definition.GetAgent(token);
     }
 
     public override IModel? GetModel(string modelName)
     {
-        ModelDefinition? def = PrivateModelDefinitions.FirstOrDefault(pd => string.Equals(pd.ModelId, modelName, StringComparison.OrdinalIgnoreCase));
+        ModelDefinition? def = Models.FirstOrDefault(pd => string.Equals(pd.ModelId, modelName, StringComparison.OrdinalIgnoreCase));
         if (def is null) return null;
 
         Func<string, IModel>? modelFactory = Vendor.ToLowerInvariant() switch
@@ -288,7 +289,7 @@ internal sealed class HttpAgentDefinition(string vendor, string displayName) : A
 
     public override Agent? GetAgent(PlugIns.PlugInToken token)
     {
-        IModel? model = CurrentModel;
+        IModel? model = GetModel(CurrentModelId ?? "") ?? CurrentModel;
         if (model is null) return null;
 
         return new Agent(this, token, new GenericHarness(token));

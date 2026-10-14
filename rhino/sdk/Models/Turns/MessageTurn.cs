@@ -42,7 +42,7 @@ internal sealed record MessageTurn : Turn
 /// Content for a Message Turn
 /// </summary>
 [JsonConverter(typeof(MessageJsonConverter))]
-internal interface IMessageContent
+public interface IMessageContent
 {
     
     /// <summary>A Copy of the content</summary>

@@ -13,7 +13,7 @@ public class StatisticsTests
         PlugInToken? token = PlugInRegistry.Register();
         Assert.That(token, Is.Not.Null);
 
-        Agent? agent = Agent.GetDeepSeekAgent(token, "deepseek-flash", "");
+        Agent? agent = Agent.GetDeepSeekAgent(token);
         Assert.That(agent, Is.Not.Null);
 
         int count = 100;
@@ -32,7 +32,7 @@ public class StatisticsTests
         PlugInToken? token = PlugInRegistry.Register();
         Assert.That(token, Is.Not.Null);
 
-        Agent? agent = Agent.GetDeepSeekAgent(token, "deepseek-flash", "");
+        Agent? agent = Agent.GetDeepSeekAgent(token);
         Assert.That(agent, Is.Not.Null);
 
         int count = 100;
