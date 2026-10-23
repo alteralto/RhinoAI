@@ -1,5 +1,6 @@
 using Eto.Drawing;
 using Eto.Forms;
+using Rhino.UI;
 
 using RhinoCommand = Rhino.Commands.Command;
 
@@ -7,16 +8,14 @@ namespace Rhino.AI;
 
 public class MCPConnectCommand : RhinoCommand
 {
-    public override string EnglishName => "MCPConnect";
-
-    public override string LocalName => Rhino.UI.LOC.COMMANDNAME(EnglishName);
+    public override string EnglishName => LOC.COMMANDNAME("MCPConnect");
 
     protected override string CommandContextHelpUrl => DocsLinks.Homepage;
 
     protected override Rhino.Commands.Result RunCommand(RhinoDoc doc, Rhino.Commands.RunMode mode)
     {
         ConnectDialog dialog = new();
-        dialog.ShowModal(Rhino.UI.RhinoEtoApp.MainWindow);
+        dialog.ShowModal(RhinoEtoApp.MainWindow);
         return Rhino.Commands.Result.Success;
     }
 }
@@ -35,7 +34,7 @@ internal sealed class ConnectDialog : Dialog
 
     public ConnectDialog()
     {
-        Title = "Connect Rhino to your AI Agent";
+        Title = LOC.STR("Connect Rhino to your AI Agent");
 
         Resizable = true;
         Padding = new Padding(12);
@@ -47,43 +46,43 @@ internal sealed class ConnectDialog : Dialog
         {
             ReadOnly = true,
             Wrap = true,
-            Font = Fonts.Monospace(11),
+            Font = Eto.Drawing.Fonts.Monospace(11),
         };
 
         _jsonTextArea = new TextArea
         {
             ReadOnly = true,
             Wrap = false,
-            Font = Fonts.Monospace(11),
+            Font = Eto.Drawing.Fonts.Monospace(11),
         };
 
         TabControl tabs = new();
-        TabPage installTab = new() { Text = "Install", Content = BuildInstall() };
-        TabPage promptTab = new() { Text = "Prompt", Content = BuildPrompt() };
+        TabPage installTab = new() { Text = LOC.STR("Install"), Content = BuildInstall() };
+        TabPage promptTab = new() { Text = LOC.STR("Prompt"), Content = BuildPrompt() };
         TabPage jsonTab = new() { Text = "mcp.json", Content = Pad(_jsonTextArea) };
         tabs.Pages.Add(installTab);
         tabs.Pages.Add(promptTab);
         tabs.Pages.Add(jsonTab);
-        tabs.Pages.Add(new TabPage { Text = "Advanced", Content = BuildAdvanced() });
+        tabs.Pages.Add(new TabPage { Text = LOC.STR("Advanced"), Content = BuildAdvanced() });
 
-        Button copyButton = new() { Text = "Copy" };
+        Button copyButton = new() { Text = LOC.STR("Copy") };
         copyButton.Click += (_, _) =>
         {
             TextArea active = tabs.SelectedPage == jsonTab ? _jsonTextArea : _promptTextArea;
             Clipboard.Instance.Text = active.Text;
-            copyButton.Text = "Copied!";
+            copyButton.Text = LOC.STR("Copied!");
         };
 
         // Copy only means anything on the two text tabs; re-scan the Install grid whenever it shows.
         tabs.SelectedIndexChanged += (_, _) =>
         {
-            copyButton.Text = "Copy";
+            copyButton.Text = LOC.STR("Copy");
             copyButton.Enabled = tabs.SelectedPage == promptTab || tabs.SelectedPage == jsonTab;
             if (tabs.SelectedPage == installTab)
                 PopulateInstall();
         };
 
-        Button closeButton = new() { Text = "Close" };
+        Button closeButton = new() { Text = LOC.STR("Close") };
         closeButton.Click += (_, _) => Close();
 
         StackLayout buttons = new()
@@ -117,7 +116,7 @@ internal sealed class ConnectDialog : Dialog
     {
         Label blurb = new()
         {
-            Text = "If Install does not support your agent, you can paste this prompt into your MCP-aware AI agent (e.g. Claude), it will handle the connection for you.",
+            Text = LOC.STR("If Install does not support your agent, you can paste this prompt into your MCP-aware AI agent (e.g. Claude), it will handle the connection for you."),
             Wrap = WrapMode.Word,
         };
 
@@ -138,8 +137,7 @@ internal sealed class ConnectDialog : Dialog
     {
         Label help = new()
         {
-            Text = "Add or remove the RhinoAI MCP server for any agent detected on this machine. Detected agents "
-                + "show an Install button; connected ones show an Uninstall button.",
+            Text = LOC.STR("Add or remove the RhinoAI MCP server for any agent detected on this machine. Detected agents show an Install button; connected ones show an Uninstall button."),
             Wrap = WrapMode.Word,
             TextColor = Colors.Gray,
         };
@@ -161,8 +159,8 @@ internal sealed class ConnectDialog : Dialog
     {
         TableLayout table = new() { Spacing = new Size(16, 8) };
         table.Rows.Add(new TableRow(
-            new TableCell(HeaderLabel("Agent"), scaleWidth: true),
-            new TableCell(HeaderLabel("Status")),
+            new TableCell(HeaderLabel(LOC.STR("Agent")), scaleWidth: true),
+            new TableCell(HeaderLabel(LOC.STR("Status"))),
             new TableCell(HeaderLabel(""))));
 
         foreach (McpClientConfigInstaller.McpClient client in McpClientConfigInstaller.Clients)
@@ -181,11 +179,11 @@ internal sealed class ConnectDialog : Dialog
     private static Control StatusLabel(McpClientConfigInstaller.McpInstallState state) => state switch
     {
         McpClientConfigInstaller.McpInstallState.Installed =>
-            new Label { Text = "✓ Installed", TextColor = Colors.Green, VerticalAlignment = VerticalAlignment.Center },
+            new Label { Text = LOC.STR("✓ Installed"), TextColor = Colors.Green, VerticalAlignment = VerticalAlignment.Center },
         McpClientConfigInstaller.McpInstallState.Detected =>
-            new Label { Text = "Detected", TextColor = Colors.Gray, VerticalAlignment = VerticalAlignment.Center },
+            new Label { Text = LOC.STR("Detected"), TextColor = Colors.Gray, VerticalAlignment = VerticalAlignment.Center },
         _ =>
-            new Label { Text = "Not detected", TextColor = Colors.Gray, VerticalAlignment = VerticalAlignment.Center },
+            new Label { Text = LOC.STR("Not detected"), TextColor = Colors.Gray, VerticalAlignment = VerticalAlignment.Center },
     };
 
     private Control ActionControl(McpClientConfigInstaller.McpClient client, McpClientConfigInstaller.McpInstallState state) => state switch
@@ -197,16 +195,15 @@ internal sealed class ConnectDialog : Dialog
 
     private Button InstallButton(McpClientConfigInstaller.McpClient client)
     {
-        Button button = new() { Text = "Install" };
+        Button button = new() { Text = LOC.STR("Install") };
         button.Click += (_, _) =>
         {
             McpClientConfigInstaller.McpInstallResult result = McpClientConfigInstaller.Install(client, CurrentEnv());
             if (result is McpClientConfigInstaller.McpInstallResult.Unsupported or McpClientConfigInstaller.McpInstallResult.Failed)
                 MessageBox.Show(
                     this,
-                    $"Couldn't add the RhinoAI MCP server to {client.DisplayName}. Its config may be in a shape we can't safely edit; "
-                        + "use the mcp.json tab to add it by hand.",
-                    "Install",
+                    LOC.STR($"Couldn't add the RhinoAI MCP server to {client.DisplayName}. Its config may be in a shape we can't safely edit; use the mcp.json tab to add it by hand."),
+                    LOC.STR("Install"),
                     MessageBoxButtons.OK,
                     MessageBoxType.Warning);
             PopulateInstall();
@@ -216,16 +213,15 @@ internal sealed class ConnectDialog : Dialog
 
     private Button UninstallButton(McpClientConfigInstaller.McpClient client)
     {
-        Button button = new() { Text = "Uninstall" };
+        Button button = new() { Text = LOC.STR("Uninstall") };
         button.Click += (_, _) =>
         {
             McpClientConfigInstaller.McpUninstallResult result = McpClientConfigInstaller.Uninstall(client);
             if (result is McpClientConfigInstaller.McpUninstallResult.Unsupported or McpClientConfigInstaller.McpUninstallResult.Failed)
                 MessageBox.Show(
                     this,
-                    $"Couldn't remove the RhinoAI MCP server from {client.DisplayName}. Its config may be in a shape we can't safely edit; "
-                        + "remove the rhino entry by hand.",
-                    "Uninstall",
+                    LOC.STR($"Couldn't remove the RhinoAI MCP server from {client.DisplayName}. Its config may be in a shape we can't safely edit; remove the rhino entry by hand."),
+                    LOC.STR("Uninstall"),
                     MessageBoxButtons.OK,
                     MessageBoxType.Warning);
             PopulateInstall();
@@ -233,7 +229,7 @@ internal sealed class ConnectDialog : Dialog
         return button;
     }
 
-    private static Label HeaderLabel(string text) => new() { Text = text, Font = Fonts.Sans(11, FontStyle.Bold) };
+    private static Label HeaderLabel(string text) => new() { Text = text, Font = Eto.Drawing.Fonts.Sans(11, FontStyle.Bold) };
 
     // One label + text field per override; editing any field rebuilds both tabs.
     private Control BuildAdvanced()
@@ -291,9 +287,9 @@ internal sealed class ConnectDialog : Dialog
     }
 
     private static string Prompt(IReadOnlyDictionary<string, string> env) =>
-$@"Install the RhinoAI MCP server. The entry is:
+LOC.STR($@"Install the RhinoAI MCP server. The entry is:
 
 {RouterMcpConfig.EntryFragment(env)}
 
-It is very important you tell the user to reload after this.";
+It is very important you tell the user to reload after this.");
 }

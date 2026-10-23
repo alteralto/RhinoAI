@@ -7,9 +7,7 @@ namespace Rhino.AI;
 
 public class MCPStatusCommand : Command
 {
-    public override string EnglishName => "MCPStatus";
-
-    public override string LocalName => LOC.COMMANDNAME(EnglishName);
+    public override string EnglishName => LOC.COMMANDNAME("MCPStatus");
 
     protected override string CommandContextHelpUrl => DocsLinks.Homepage;
 

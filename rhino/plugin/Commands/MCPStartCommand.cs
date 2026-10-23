@@ -8,9 +8,7 @@ namespace Rhino.AI;
 public class MCPStartCommand : Command
 {
 
-    public override string EnglishName => "MCPStart";
-
-    public override string LocalName => LOC.COMMANDNAME(EnglishName);
+    public override string EnglishName => LOC.COMMANDNAME("MCPStart");
 
     protected override string CommandContextHelpUrl => DocsLinks.Homepage;
 
