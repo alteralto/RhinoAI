@@ -138,6 +138,11 @@ public class CodegenTests
         Assert.That(output, Does.Contain("decimal? step"));
         Assert.That(output, Does.Contain("args[\"min\"] = global::System.Text.Json.Nodes.JsonValue.Create(min);"));
         Assert.That(output, Does.Not.Contain("__obj_min"));
+
+        // The router builds each proxy's schema from RouterJsonContext. Without
+        // decimal declared there, it throws on startup instead of serving tools.
+        Assert.That(RouterJsonContext.Default.GetTypeInfo(typeof(decimal)), Is.Not.Null);
+        Assert.That(RouterJsonContext.Default.GetTypeInfo(typeof(decimal?)), Is.Not.Null);
     }
 
     private static string RunGenerator(string toolSource)
